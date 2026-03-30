@@ -13,49 +13,22 @@ def f(t,fm):
  return (1-2*(np.pi*t*fm)**2)*np.exp(-(np.pi*t*fm)**2)
 
 fm = 5
-t = np.linspace(-1, 1, 100)
+t = np.linspace(-1, 1, 500)
 
 ricker = f(t, fm)
 
-#plot of ricker
-
-plt.plot(ricker, t)
-plt.xlabel("Amplitude")
-plt.ylabel("Tempo")
-#plt.gca().invert_yaxis()
-plt.grid()
-plt.show()
-
 ##Reflectivy function
 #Geologia section
-depth = [10, 50, 80, 100, 200]   
+depth = [0, 10, 80, 100, 200]   
 #density = {"Clay": 2.6, "]Sandstone": 2.3, "Dolomite": 2.9}
 density = [2.6, 2.3, 2.9, 2.3, 5]
 #velocity = {"Clay": 2.5, "Sandstone": 6, "Dolomite": 6.5}
 velocity = [2.5, 6, 6.5, 6, 5]
 
-#print(density["Clay"])
-#step(x, y, [fmt], *, data=None, where='pre', **kwargs)
-
-plt.step(density, depth, where='pre')
-plt.xlim(0, 20)   # eixo x vai de 2 até 10
-plt.ylim(0, 500)
-plt.xlabel("density")
-plt.ylabel("depth")
-plt.gca().invert_yaxis()
-plt.grid()
-plt.show()    
-    
-plt.step(velocity, depth, where='pre')
-plt.xlim(0, 10)   # eixo x vai de 2 até 10
-plt.ylim(0, 200)
-plt.xlabel("velocity")
-plt.ylabel("Depth")
-plt.gca().invert_yaxis()
-plt.grid()
-plt.show() 
-
 #Reflectivity Fuction
+
+#n=500
+#R = np.zeros(n)
 
 def R(density, velocity):
     R = np.zeros(len(density) - 1)
@@ -67,29 +40,68 @@ def R(density, velocity):
     
 density = [2.6, 2.3, 2.9, 2.3, 5]
 velocity = [2.5, 6, 6.5, 6, 5]
-depth = [50, 80, 100, 200]
+depth = [0, 10, 80, 100, 200]
 Refletivitidade = R(density, velocity)
 print(R(density, velocity))
-
-fig, ax = plt.subplots()
-ax.plot([0, 0], [min(depth), max(depth)], color='black')#linha vertical central
-for depthi, Refletivitidadei in zip(depth, Refletivitidade):
-    ax.plot([0, Refletivitidadei], [depthi, depthi], color='black')
-ax.invert_yaxis()
-#ax.axis('off')
-plt.show()
 
 # Convolution(refletivity * ricker)
 #'full' → convolução completa
 #same' → saída com mesmo tamanho do sinal 
 #valid' → só onde há sobreposição completa
 
-Conv = np.convolve(Refletivitidade, ricker, mode= "same")
-depth_conv = np.linspace(min(depth), max(depth), len(Conv))
+Conv = np.convolve(Refletivitidade, ricker, mode= "valid")
+#depth_conv = np.linspace(min(depth), max(depth), len(Conv))
 
-plt.plot(Conv, depth_conv)
-plt.xlabel("Amplitude")
-plt.ylabel("Tempo")
+#plot of ricker
+
+plt.subplot(1,5,1)
+plt.plot(ricker, t, color="black")
+#plt.xlabel("Amplitude")
+#plt.ylabel("Tempo")
+plt.title("Ricker")
 plt.gca().invert_yaxis()
 plt.grid()
+
+#print(density["Clay"])
+#step(x, y, [fmt], *, data=None, where='pre', **kwargs)
+
+plt.subplot(1,5,2)
+plt.step(density, depth, where='pre', color="black")
+#plt.xlim(0, 20)   # eixo x vai de 2 até 10
+#plt.ylim(0, 500)
+#plt.xlabel("density")
+#plt.ylabel("depth")
+plt.title("Density")
+plt.gca().invert_yaxis()
+plt.grid()   
+
+plt.subplot(1,5,3)    
+plt.step(velocity, depth, where='pre', color="black")
+#plt.xlim(0, 10)   # eixo x vai de 2 até 10
+#plt.ylim(0, 200)
+#plt.xlabel("velocity")
+#plt.ylabel("Depth")
+plt.title("Velocity")
+plt.gca().invert_yaxis()
+plt.grid() 
+
+plt.subplot(1,5,4)
+
+plt.plot([0, 0], [min(depth), max(depth)], color='black')
+
+for depthi, Ri in zip(depth[1:], Refletivitidade):
+    plt.plot([0, Ri], [depthi, depthi], color='black')
+
+plt.gca().invert_yaxis()
+plt.title("Reflectivity")
+plt.grid()
+
+plt.subplot(1,5,5)
+plt.plot(Conv, color="black")
+#plt.xlabel("Amplitude")
+#plt.ylabel("Tempo")
+plt.title("Seismic Trace")
+plt.gca().invert_yaxis()
+plt.grid()
+
 plt.show()
