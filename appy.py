@@ -13,17 +13,26 @@ def f(t,fm):
  return (1-2*(np.pi*t*fm)**2)*np.exp(-(np.pi*t*fm)**2)
 
 fm = 5
-t = np.linspace(-1, 1, 500)
+t = np.linspace(-1, 1, 1000)
 
 ricker = f(t, fm)
 
 ##Reflectivy function
 #Geologia section
-depth = [0, 10, 80, 100, 200]   
+#depth = [0, 10, 80, 100, 200]   
 #density = {"Clay": 2.6, "]Sandstone": 2.3, "Dolomite": 2.9}
-density = [2.6, 2.3, 2.9, 2.3, 5]
+n = 1000
+density = np.zeros(n)
 #velocity = {"Clay": 2.5, "Sandstone": 6, "Dolomite": 6.5}
-velocity = [2.5, 6, 6.5, 6, 5]
+velocity = np.zeros(n)
+
+density[0:200] = 2.6
+density[200:600] = 2.3
+density[600:1000] = 2.9
+
+velocity[0:200] = 2.5
+velocity[200:600] = 6
+velocity[600:1000] = 6.5
 
 #Reflectivity Fuction
 
@@ -38,18 +47,16 @@ def R(density, velocity):
         R[i] = (Z2 - Z1) / (Z2 + Z1)
     return R
     
-density = [2.6, 2.3, 2.9, 2.3, 5]
-velocity = [2.5, 6, 6.5, 6, 5]
-depth = [0, 10, 80, 100, 200]
 Refletivitidade = R(density, velocity)
 print(R(density, velocity))
+depth = np.arange(0, n*1) 
 
 # Convolution(refletivity * ricker)
 #'full' → convolução completa
 #same' → saída com mesmo tamanho do sinal 
 #valid' → só onde há sobreposição completa
 
-Conv = np.convolve(Refletivitidade, ricker, mode= "valid")
+Conv = np.convolve(Refletivitidade, ricker, mode= "same")
 #depth_conv = np.linspace(min(depth), max(depth), len(Conv))
 
 #plot of ricker
@@ -97,7 +104,7 @@ plt.title("Reflectivity")
 plt.grid()
 
 plt.subplot(1,5,5)
-plt.plot(Conv, color="black")
+plt.plot(Conv, depth, color="black")
 #plt.xlabel("Amplitude")
 #plt.ylabel("Tempo")
 plt.title("Seismic Trace")
