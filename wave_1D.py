@@ -3,6 +3,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation, PillowWriter
 
 def wavelet(t,fm):
 
@@ -11,9 +12,9 @@ def wavelet(t,fm):
 #criar modelo
 nz = 1000
 velocity = np.zeros(nz)
-velocity[0:400] = 2.3
-velocity[400:800] = 2.6
-velocity[800:1000] = 2.9
+velocity[0:400] = 2300
+velocity[400:800] = 2600
+velocity[800:1000] = 2900
 
 #plt.plot(np.arange(n), velocity)
 #plt.plot(velocity, np.arange(nz))
@@ -27,7 +28,7 @@ dz = 5
 recz = 100 #meus receptor
 
 sz = 25
-
+prof = np.arange(nz)*dz
 #ricker
 
 nt = 1001
@@ -58,29 +59,26 @@ for t in range(1, nt - 1):
     P[:, t+1] = (dt * c)**2 * laplacian + 2*P[:, t] - P[:, t-1]
     
     
-from matplotlib.animation import FuncAnimation
 
 def wave_animation(P, nt):
     fig, ax = plt.subplots(num="Wavefield plot", figsize=(8, 8), clear=True)
     
-    im = ax.plot(P, aspect="auto", cmap="Greys")
+    im, = ax.plot(prof,P[:,0])
 
     ax.set_title("Wavefield plot", fontsize=18)
     ax.set_xlabel("Time [s]", fontsize=15)
     ax.set_ylabel("Depth [m]", fontsize=15)
 
     def animate(frame):
-        im.set_array(P[:, frame])
-        return [im]
+        im.set_ydata(P[:, frame])
+        ax.set_title(f"time = {frame*dt:.3f} s")
+        return im,
 
-    ani = FuncAnimation(fig, animate, frames=range(nt), repeat=False, blit=True)
+    ani = FuncAnimation(fig, animate, frames=range(nt), interval=10)
+    ani.save("wave_propagation.gif", writer=PillowWriter(fps=20))
     
     plt.tight_layout()
     plt.show()
 
 wave_animation(P, nt)
 
-#DIFERENÇAS FINITAS
-
-#def wave(P, x0, x1, t0, t1, c, n):
-#    f = (P[i+1]**n - 2*P[i]**n + P[i-1]**n)/(x1-x0)**2 - (P[i]**(n+1) - 2*P[i]**n + P[i]**(n-1))/(t1-t0)**2 * c**2
