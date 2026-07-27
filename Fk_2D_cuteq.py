@@ -5,7 +5,7 @@ nt = 1001 #cada traço possui nt amostras tempora
 dt = 0.001 #o sismograma foi amostradado a cada 1 milissegundo
 nr = 61 #numero de receptores
 dr = 5 #espaçamento entre os receptores
-velocity_cut = 1500
+velocity_cut = 250
 
 file = f"cmp_gather_{nt}x{nr}.bin"
 data = np.fromfile(file, count = nt*nr, dtype = np.float32).reshape([nt,nr], order = "F")
@@ -18,9 +18,11 @@ wavenumber = np.fft.fftshift(np.fft.fftfreq(nr, dr))
 
 K, F = np.meshgrid(wavenumber, frequency)
 # velocity = np.divide(F,K,out=np.zeros_like(F),where=K!=0)
-mask = np.abs(K) <= np.abs(F)/velocity_cut
+mask = np.abs(K) > np.abs(F)/velocity_cut #<
 fk_filtrado = data_fk * mask
-data_filtrada = np.real(np.fft.ifft2(np.fft.ifftshift(fk_filtrado)))
+data_fk_filtered = data_fk.copy()
+data_fk_filtered[mask] = 0
+data_filtrada = np.real(np.fft.ifft2(np.fft.ifftshift(data_fk_filtered)))
 
 xloc = np.linspace(0, nr-1, 5, dtype = int)
 xlab = np.linspace(0, nr-1, 5)*dr
@@ -29,6 +31,12 @@ tloc = np.linspace(0, nt-1, 11, dtype = int)
 tlab = np.around(tloc*dt, decimals = 1)
 
 scale = 0.9*np.std(data)
+
+extent=[wavenumber.min(), wavenumber.max(), frequency.min(), frequency.max()]
+
+f = np.linspace(frequency.min(), frequency.max(), 500)
+
+k = f / velocity_cut
 
 fig, ax = plt.subplots(ncols = 2, nrows = 2, figsize = (10, 8))
 
@@ -41,25 +49,30 @@ ax[0,0].set_title("Gather")
 ax[0,0].set_xlabel("Offset [m]")
 ax[0,0].set_ylabel("Two way time [s]")
 
-ax[0,1].imshow(np.abs(data_fk), aspect = "auto", cmap = "jet", extent = [np.min(wavenumber),(-1)*np.min(wavenumber),np.min(frequency),(-1)*np.min(frequency)])
-ax[0,1].set_ylim([-60, 60])
+ax[0,1].imshow(np.abs(data_fk), aspect = "auto", cmap = "jet", extent=[wavenumber.min(), wavenumber.max(), frequency.min(), frequency.max()])
 ax[0,1].set_title("FK domain")
 ax[0,1].set_xlabel(r"Wavenumber [m$^{-1}$]")
 ax[0,1].set_ylabel("Frequency [Hz]")
 ax[0,1].plot(np.zeros(nt), frequency, "--k")
 ax[0,1].plot(wavenumber, np.zeros(nr), "--k")
 
+ax[0,1].plot(k,  f, '--w', lw=2)
+ax[0,1].plot(-k, f, '--w', lw=2)
+
 # ax[0,1].plot(wavenumber, +slope, "--g")
 # ax[0,1].plot(wavenumber, -slope, "--r")
 
 
-ax[1,0].imshow(np.abs(data_filtrada), aspect = "auto", cmap = "jet", extent = [np.min(wavenumber),(-1)*np.min(wavenumber),np.min(frequency),(-1)*np.min(frequency)])
+ax[1,0].imshow(np.abs(data_filtrada), aspect = "auto", cmap = "jet", extent=[wavenumber.min(), wavenumber.max(), frequency.min(), frequency.max()])
 ax[1,0].set_ylim([-60, 60])
 ax[1,0].set_title("FK domain")
 ax[1,0].set_xlabel(r"Wavenumber [m$^{-1}$]")
 ax[1,0].set_ylabel("Frequency [Hz]")
 ax[1,0].plot(np.zeros(nt), frequency, "--k")
 ax[1,0].plot(wavenumber, np.zeros(nr), "--k")
+
+ax[1,0].plot(k,  f, '--w', lw=2)
+ax[1,0].plot(-k, f, '--w', lw=2)
 
 # ax[1,0].plot(wavenumber, +slope, "--g")
 # ax[1,0].plot(wavenumber, -slope, "--r")
