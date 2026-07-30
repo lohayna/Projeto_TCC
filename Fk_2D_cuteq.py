@@ -20,8 +20,8 @@ K, F = np.meshgrid(wavenumber, frequency)
 # velocity = np.divide(F,K,out=np.zeros_like(F),where=K!=0)
 mask = np.abs(K) > np.abs(F)/velocity_cut #<
 fk_filtrado = data_fk * mask
-data_fk_filtered = data_fk.copy()
-data_fk_filtered[mask] = 0
+# data_fk_filtered = data_fk.copy()
+# data_fk_filtered[mask] = 0
 data_filtrada = np.real(np.fft.ifft2(np.fft.ifftshift(data_fk_filtered)))
 
 xloc = np.linspace(0, nr-1, 5, dtype = int)

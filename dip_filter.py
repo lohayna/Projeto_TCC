@@ -1,11 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.ndimage import gaussian_filter
 
 nt = 1001 #cada traço possui nt amostras tempora
 dt = 0.001 #o sismograma foi amostradado a cada 1 milissegundo
 nr = 61 #numero de receptores
 dr = 5 #espaçamento entre os receptores
-# velocity_cut = 250
+vel = 250
 angle_cut = 25
 
 file = f"cmp_gather_{nt}x{nr}.bin"
@@ -19,6 +20,10 @@ K, F = np.meshgrid(wavenumber, frequency)
 slope = np.tan(np.radians(angle_cut))
 f_lim = np.abs(K) * slope * frequency.max()
 mask = np.abs(F) > f_lim #<
+
+
+mask = np.abs(F) > vel*np.abs(K)
+mask_filt = gaussian_filter(mask.astype(float), sigma=5)
 
 data_fk_filtered = data_fk * mask
 data_filtered = np.real(np.fft.ifft2(np.fft.ifftshift(data_fk_filtered)))
