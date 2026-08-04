@@ -8,6 +8,12 @@ nr = 61 #numero de receptores
 dr = 5 #espaçamento entre os receptores
 vel = 250
 angle_cut = 25
+f_min = 0       # base inferior do trapézio [Hz]
+f_max = 60      # base superior do trapézio [Hz]
+k_bottom = 0.01  # largura inferior
+k_top = 0.10     # largura superior
+# k_bottom = 0.008
+# k_top    = 0.030
 
 file = f"cmp_gather_{nt}x{nr}.bin"
 data = np.fromfile(file, count = nt*nr, dtype = np.float32).reshape([nt,nr], order = "F")
@@ -20,9 +26,23 @@ K, F = np.meshgrid(wavenumber, frequency)
 slope = np.tan(np.radians(angle_cut))
 f_lim = np.abs(K) * slope * frequency.max()
 mask = np.abs(F) > f_lim #<
+alpha = (np.abs(F) - f_min) / (f_max - f_min) #Essa variável indica onde cada frequência está entre 5 e 60 Hz.
+# alpha = np.clip(alpha, 0.0, 1.0)
+k_limit = k_bottom + alpha * (k_top - k_bottom) #interpolação linear
+inside_trapezoid = ((np.abs(F) >= f_min) & (np.abs(F) <= f_max) & (np.abs(K) <= k_limit))
+mask = inside_trapezoid.astype(float)
+# mask = (~inside_trapezoid).astype(float)
+# v = 800      
+# delta_k = 0.005
+
+# mask = (
+#     (np.abs(F) >= 0) &
+#     (np.abs(F) <= 60) &
+#     (np.abs(np.abs(K) - np.abs(F)/v) < delta_k)
+# )
 
 
-mask = np.abs(F) > vel*np.abs(K)
+# mask = np.abs(F) > vel*np.abs(K)
 mask_filt = gaussian_filter(mask.astype(float), sigma=5)
 
 data_fk_filtered = data_fk * mask
@@ -62,7 +82,7 @@ ax[0,1].plot(wavenumber, np.zeros(nr), "--k")
 # ax[0,1].plot(wavenumber, -slope, "--r")
 
 
-ax[1,0].imshow(np.abs(data_fk_filtered), aspect = "auto", cmap = "jet", extent=[wavenumber.min(), wavenumber.max(), frequency.min(), frequency.max()])
+ax[1,0].imshow(np.abs(data_fk_filtered), aspect = "auto", cmap = "bwr", extent=[wavenumber.min(), wavenumber.max(), frequency.min(), frequency.max()])
 ax[1,0].set_title("FK domain")
 ax[1,0].set_ylim([-60, 60])
 ax[1,0].set_xlabel(r"Wavenumber [m$^{-1}$]")
