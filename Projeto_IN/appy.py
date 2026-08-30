@@ -59,6 +59,10 @@ depth = np.arange(0, n*1)
 Conv = np.convolve(Refletivitidade, ricker, mode= "same")
 #depth_conv = np.linspace(min(depth), max(depth), len(Conv))
 
+model = np.column_stack((density, velocity))
+
+model.astype(np.float32).tofile("simple_geological_model.bin")
+
 #plot of ricker
 
 plt.subplot(1,5,1)
